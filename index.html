@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT - Unlimitierter Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; text-align: center; }
+        textarea { width: 100%; height: 80px; }
+        button { margin-top: 10px; padding: 10px; cursor: pointer; }
+        .chat-box { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; }
+        .user { text-align: left; font-weight: bold; }
+        .bot { text-align: left; color: blue; }
+    </style>
+</head>
+<body>
+    <h1>ChatGPT - Unlimitierter Chat</h1>
+    <div class="chat-box" id="chatBox"></div>
+    <textarea id="userInput" placeholder="Schreibe hier..."></textarea>
+    <button onclick="sendMessage()">Senden</button>
+
+    <script>
+        let messages = [];  // Chatverlauf speichern
+
+        async function sendMessage() {
+            let userInput = document.getElementById("userInput").value.trim();
+            if (!userInput) return;
+
+            let chatBox = document.getElementById("chatBox");
+            chatBox.innerHTML += `<p class="user">Du: ${userInput}</p>`;
+            document.getElementById("userInput").value = "";
+
+            // Nachricht zum Chatverlauf hinzufügen
+            messages.push({ role: "user", content: userInput });
+
+            let response = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer DEIN_OPENAI_API_KEY"
+                },
+                body: JSON.stringify({
+                    model: "gpt-4",
+                    messages: messages,  // Ganzer Chatverlauf wird gesendet
+                    max_tokens: 500  // Lange Antworten erlauben
+                })
+            });
+
+            let data = await response.json();
+            let botReply = data.choices[0].message.content;
+            
+            // Antwort in Chatverlauf speichern
+            messages.push({ role: "assistant", content: botReply });
+
+            chatBox.innerHTML += `<p class="bot">ChatGPT: ${botReply}</p>`;
+            chatBox.scrollTop = chatBox.scrollHeight;  // Automatisch scrollen
+        }
+    </script>
+</body>
+</html>
